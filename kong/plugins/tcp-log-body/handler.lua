@@ -1,6 +1,8 @@
+local BasePlugin = require "kong.plugins.base_plugin"
 local basic_serializer = require "kong.plugins.log-serializers.basic"
 local cjson = require "cjson"
 
+local TcpLogHandler = BasePlugin:extend()
 TcpLogHandler.PRIORITY = 7
 TcpLogHandler.VERSION = "2.0.0"
 
@@ -16,7 +18,7 @@ local function get_body_data(max_body_size)
   local file_path = req.get_body_file()
   if file_path then
     local file = io.open(file_path, "r")
-    data       = file:read(max_body_size)
+    data = file:read(max_body_size)
     file:close()
     return data
   end
