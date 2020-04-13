@@ -5,7 +5,7 @@ local TcpLogHandler = BasePlugin:extend()
 TcpLogHandler.PRIORITY = 7
 TcpLogHandler.VERSION = "2.0.0"
 
-local function get_body_data(max_body_size)
+local function get_body_data()
   local req  = ngx.req
   
   req.read_body()
@@ -17,7 +17,7 @@ local function get_body_data(max_body_size)
   local file_path = req.get_body_file()
   if file_path then
     local file = io.open(file_path, "r")
-    data = file:read(max_body_size)
+    data = file:read("*all")
     file:close()
     return data
   end
@@ -27,16 +27,15 @@ end
 
 function TcpLogHandler:access(conf)
   TcpLogHandler.super.access(self)  
-  ngx.ctx.request_body = get_body_data(conf.max_body_size)
   ngx.ctx.response_body = ""
+  ngx.ctx.request_body = get_body_data()
 end
 
 function TcpLogHandler:body_filter(conf)
   TcpLogHandler.super.body_filter(self)
 
   local chunk = ngx.arg[1]
-  local res_body = ngx.ctx.response_body .. (chunk or "")
-  ngx.ctx.response_body = string.sub(res_body, 0, conf.max_body_size)
+  ngx.ctx.response_body = ngx.ctx.response_body .. (chunk or "")
 end
 
 local function serialize(ngx, kong)
@@ -50,17 +49,18 @@ local function serialize(ngx, kong)
   local request_uri = var.request_uri or ""
 
   return {
+    -- indexname = "bayuquanapp-api-log",
     uri = request_uri,
     url = var.scheme .. "://" .. var.host .. ":" .. var.server_port .. request_uri,
     querystring = kong.request.get_query(), -- parameters, as a table
     method = kong.request.get_method(), -- http method
-    reqsize = var.request_length
+    reqsize = var.request_length,
     status = var.upstream_uri,
     status = ngx.status,
     ressize = var.bytes_sent,
-    reqbody = ctx.request_body
+    reqbody = ctx.request_body,
     resbody = ctx.response_body,
-    client_ip = var.remote_addr,
+    client_ip = var.remote_addr
   }
 end
 local function log(premature, conf, message)
@@ -106,6 +106,7 @@ local function log(premature, conf, message)
   
   function TcpLogHandler:log(conf)
     local message = serialize(ngx)
+    message.indexname = conf.index_name
     local ok, err = ngx.timer.at(0, log, conf, message)
     if not ok then
       ngx.log(ngx.ERR, "[tcp-log-body] failed to create timer: ", err)
