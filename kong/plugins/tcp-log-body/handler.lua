@@ -1,8 +1,5 @@
-local BasePlugin = require "kong.plugins.base_plugin"
 local basic_serializer = require "kong.plugins.log-serializers.basic"
 local cjson = require "cjson"
-
-local TcpLogHandler = BasePlugin:extend()
 
 TcpLogHandler.PRIORITY = 7
 TcpLogHandler.VERSION = "2.0.0"
@@ -25,10 +22,6 @@ local function get_body_data(max_body_size)
   end
   
   return ""
-end
-
-function TcpLogHandler:new()
-  TcpLogHandler.super.new(self, "tcp-log")
 end
 
 function TcpLogHandler:access(conf)
@@ -66,14 +59,14 @@ local function log(premature, conf, message)
   
     ok, err = sock:connect(host, port)
     if not ok then
-      ngx.log(ngx.ERR, "[tcp-log] failed to connect to " .. host .. ":" .. tostring(port) .. ": ", err)
+      ngx.log(ngx.ERR, "[tcp-log-body] failed to connect to " .. host .. ":" .. tostring(port) .. ": ", err)
       return
     end
   
     if conf.tls then
       ok, err = sock:sslhandshake(true, conf.tls_sni, false)
       if not ok then
-        ngx.log(ngx.ERR, "[tcp-log] failed to perform TLS handshake to ",
+        ngx.log(ngx.ERR, "[tcp-log-body] failed to perform TLS handshake to ",
                          host, ":", port, ": ", err)
         return
       end
@@ -81,12 +74,12 @@ local function log(premature, conf, message)
   
     ok, err = sock:send(cjson.encode(message) .. "\n")
     if not ok then
-      ngx.log(ngx.ERR, "[tcp-log] failed to send data to " .. host .. ":" .. tostring(port) .. ": ", err)
+      ngx.log(ngx.ERR, "[tcp-log-body] failed to send data to " .. host .. ":" .. tostring(port) .. ": ", err)
     end
   
     ok, err = sock:setkeepalive(keepalive)
     if not ok then
-      ngx.log(ngx.ERR, "[tcp-log] failed to keepalive to " .. host .. ":" .. tostring(port) .. ": ", err)
+      ngx.log(ngx.ERR, "[tcp-log-body] failed to keepalive to " .. host .. ":" .. tostring(port) .. ": ", err)
       return
     end
   end
@@ -95,7 +88,7 @@ local function log(premature, conf, message)
     local message = basic_serializer.serialize(ngx)
     local ok, err = ngx.timer.at(0, log, conf, message)
     if not ok then
-      ngx.log(ngx.ERR, "[tcp-log] failed to create timer: ", err)
+      ngx.log(ngx.ERR, "[tcp-log-body] failed to create timer: ", err)
     end
   end
 return TcpLogHandler
