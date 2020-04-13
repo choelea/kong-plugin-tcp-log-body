@@ -28,21 +28,16 @@ end
 
 function TcpLogHandler:access(conf)
   TcpLogHandler.super.access(self)  
-
-  if conf.log_body and conf.max_body_size > 0 then
-    ngx.ctx.request_body = get_body_data(conf.max_body_size)
-    ngx.ctx.response_body = ""
-  end
+  ngx.ctx.request_body = get_body_data(conf.max_body_size)
+  ngx.ctx.response_body = ""
 end
 
 function TcpLogHandler:body_filter(conf)
   TcpLogHandler.super.body_filter(self)
 
-  if conf.log_body and conf.max_body_size > 0 then
-    local chunk = ngx.arg[1]
-    local res_body = ngx.ctx.response_body .. (chunk or "")
-    ngx.ctx.response_body = string.sub(res_body, 0, conf.max_body_size)
-  end
+  local chunk = ngx.arg[1]
+  local res_body = ngx.ctx.response_body .. (chunk or "")
+  ngx.ctx.response_body = string.sub(res_body, 0, conf.max_body_size)
 end
 
 local function log(premature, conf, message)
