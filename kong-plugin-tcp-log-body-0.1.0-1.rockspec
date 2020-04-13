@@ -11,17 +11,18 @@ local pluginName = package:match("^kong%-plugin%-(.+)$")  -- "myplugin"
 
 supported_platforms = {"linux", "macosx"}
 source = {
-  url = "http://github.com/Kong/kong-plugin.git",
+  url = "https://github.com/choelea/kong-plugin-tcp-log-body.git",
   tag = "0.1.0"
 }
 
 description = {
-  summary = "Kong is a scalable and customizable API Management Layer built on top of Nginx.",
+  summary = "Tcp Log including request body and response body",
   homepage = "http://getkong.org",
   license = "Apache 2.0"
 }
 
-dependencies = {
+dependencies = { 
+  "lua >= 5.1"
 }
 
 build = {
