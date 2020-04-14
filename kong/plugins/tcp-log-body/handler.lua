@@ -5,6 +5,10 @@ local TcpLogHandler = BasePlugin:extend()
 TcpLogHandler.PRIORITY = 7
 TcpLogHandler.VERSION = "2.0.0"
 
+function TcpLogHandler:new()
+  TcpLogHandler.super.new(self, "tcp-log-body")
+end
+
 local function get_body_data()
   local req  = ngx.req
   
@@ -27,15 +31,17 @@ end
 
 function TcpLogHandler:access(conf)
   TcpLogHandler.super.access(self)  
+  ngx.ctx.accessiable = true  -- used in body filter, as some 404 request, :access will not be invoked
   ngx.ctx.response_body = ""
   ngx.ctx.request_body = get_body_data()
 end
 
 function TcpLogHandler:body_filter(conf)
   TcpLogHandler.super.body_filter(self)
-
-  local chunk = ngx.arg[1]
-  ngx.ctx.response_body = ngx.ctx.response_body .. (chunk or "")
+  if ngx.ctx.accessiable then -- No need set response for 404 requests (not routes setted requests); for those requests ngx.ctx.response_body is nil
+    local chunk = ngx.arg[1]
+    ngx.ctx.response_body = ngx.ctx.response_body .. (chunk or "")
+  end
 end
 
 local function serialize(ngx, kong)
