@@ -1,7 +1,10 @@
 
 
+自定义tcp-log plugin包含了request body 和 response body。
+http://tech.jiu-shu.com/Micro-Services/kong-quickstart-plugindev
+
 ## 插件打包
-进入目录运行命令打包安装并测试。 
+进入目录运行命令打包安装并测试。 （构建docker的宿主机需要安装kong）
 
 ```
 luarocks make
