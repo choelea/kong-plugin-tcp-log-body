@@ -44,3 +44,12 @@ docker run -d --name kong \
      -p 127.0.0.1:8444:8444 \
      jiu-shu/kong:2.0.3
 ```
+
+## 推送镜像
+```
+docker tag jiu-shu/kong:2.0.3  registry.cn-qingdao.aliyuncs.com/jiu-shu/kong:2.0.3
+docker tag jiu-shu/kong:2.0.3  registry.cn-qingdao.aliyuncs.com/jiu-shu/kong:latest
+docker login --username=choelea@gmail.com registry.cn-qingdao.aliyuncs.com
+docker push registry.cn-qingdao.aliyuncs.com/jiu-shu/kong:2.0.3
+docker push registry.cn-qingdao.aliyuncs.com/jiu-shu/kong:latest
+```
